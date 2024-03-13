@@ -1,0 +1,25 @@
+networks:
+    safe-tranx
+
+services: 
+  db: 
+    image: mongo
+    restart: always
+    container_name: mongo
+    volumes:
+      - ./data:/data/db
+    ports: 
+      - '27017:27017'
+    networks:
+      - safe-tranx
+
+  app: 
+    build: .
+    depends_on: 
+      - db
+    ports: 
+      - '4001:4001'
+    volumes:
+      - ./src:/app/src
+
+  
