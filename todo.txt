@@ -1,0 +1,9 @@
+INSTALL (NPM)
+  - pg
+  - class-validator
+  - class-transformer
+
+TODO: ]	
+  - Start the user service
+  - complete the controller 
+  - then we meuve

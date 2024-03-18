@@ -1,29 +1,32 @@
-import { Schema, Prop, SchemaFactory} from "@nestjs/mongoose";
-import { HydratedDocument } from "mongoose";
-import { IUser } from "../interface/user.interface";
+import { Entity, BaseEntity, Column, Index } from "typeorm";
 
-@Schema({timestamps: true, versionKey: false, _id: false})
-export class User  implements IUser{
-	@Prop({required: true, unique: true, index: true})
-    userId: string;
+@Entity("User")
+export class User extends BaseEntity {
+	@Column({ unique: true, primary: true })
+	id: string;
 
-	@Prop({required: true})
-    firstname: string;
+	@Index({ unique: true })
+	@Column({ unique: true })
+	email: string;
 
-	@Prop({required: true})
-    lastname: string;
+	@Column()
+	firstname: string;
 
-	@Prop({required: true, unique: true, index: true})
-    email: string;
+	@Column()
+	lastname: string
 
-	@Prop({required: true})
-    password: string;
+	@Column()
+	username: string
 
-	@Prop({type: Boolean, default:false})
-	is_verified: boolean
-	
+	@Column({ default: false })
+	isActive: boolean
+
+	@Column()
+	password: string
+
+	@Column()
+	isDeleted: string
+
+	@Column({ type: Date, default: Date.now() })
+	createdAt: Date
 }
-
-export type UserDocument = HydratedDocument<User>
-export const UserSchema = SchemaFactory.createForClass(User)
-
