@@ -27,6 +27,12 @@ export class User extends BaseEntity {
 	@Column()
 	isDeleted: string
 
+	@Column({ type: String })
+	refreshToken: string
+
 	@Column({ type: Date, default: Date.now() })
 	createdAt: Date
+
+	@Column({ type: Date })
+	lastLogin: Date
 }

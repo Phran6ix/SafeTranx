@@ -25,6 +25,10 @@ export class UserService {
 
 	async GetAUserById(id: string): Promise<User | null> {
 		return await this.userRepo.findOneBy({ id })
+
 	}
 
+	async UpdateUser(id: string, data: Partial<User>) {
+		return await this.userRepo.update({ id }, { ...data })
+	}
 }
