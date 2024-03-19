@@ -20,6 +20,7 @@ export class UserService {
 	}
 
 	async GetAUserByEmail(email: string): Promise<User | null> {
+		console.log("Method")
 		return await this.userRepo.findOneBy({ email })
 	}
 

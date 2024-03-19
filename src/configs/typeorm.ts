@@ -8,6 +8,6 @@ export const typeormConfig: TypeOrmModuleOptions = {
   username: 'safe_tranx',
   password: 'password',
   database: 'safe_tranx',
-  entities: [__dirname + '../**/*.schema{.ts, .js}'],
+  entities: [User],
   synchronize: true,
 }

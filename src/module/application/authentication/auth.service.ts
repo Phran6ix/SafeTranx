@@ -1,11 +1,12 @@
-import argon2 from 'argon2'
-import bcrypt from 'bcrypt'
+import * as argon2 from 'argon2'
+import * as bcrypt from 'bcrypt'
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { UserService } from "../user/user.service";
 import { CreateUserDto } from "../user/dto/createUser.dto";
 import { LoginDTO } from "./dto/auth.dto";
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { User } from '../user/schema/user.schema';
 
 @Injectable()
 export class AuthService {
@@ -21,21 +22,23 @@ export class AuthService {
 		if (userExist) {
 			throw new HttpException("User already exist", HttpStatus.CONFLICT)
 		}
-		const genSalt = await bcrypt.genSalt(10)
-		console.log("salt", genSalt)
+		const salt = await bcrypt.genSalt(10)
+		console.log("salt", salt)
 
-		let password = await bcrypt.hash(payload.password, genSalt)
+
+		let password = await bcrypt.hash(payload.password, salt)
 		this.userService.CreateUser({ ...payload, password })
 		return
 	}
+
 	async UserSignIn(payload: LoginDTO) {
 		const user = await this.userService.GetAUserByEmail(payload.email)
 		if (!user) {
 			throw new HttpException("User with this email does not exist", 404)
 		}
-		if (!user.isActive) {
-			throw new HttpException("Your account is not verified", 403)
-		}
+		// if (!user.isActive) {
+		// 	throw new HttpException("Your account is not verified", 403)
+		// }
 		const checkPassword = await bcrypt.compare(payload.password, user.password)
 		if (!checkPassword) {
 			throw new HttpException("Incorrect password", 400)
@@ -50,9 +53,9 @@ export class AuthService {
 	}
 
 	async GenerateTokens(userId: string): Promise<{ access_token: string, refresh_token: string }> {
-		const [refresh_token, access_token] = await Promise.all([
+		const [access_token, refresh_token] = await Promise.all([
 			this.jwtService.signAsync({ id: userId }, {
-				secret: this.configService.get("JWT_SECRET"), expiresIn: "15m"
+				secret: this.configService.get<string>("JWT_SECRET"), expiresIn: "15m"
 			}),
 			this.jwtService.signAsync({ id: userId }, {
 				secret: this.configService.get("JWT_SECRET_REFRESH"), expiresIn: "7d"
@@ -71,6 +74,7 @@ export class AuthService {
 		return
 	}
 
+
 	async RefreshTokens(userId: string, refreshToken: string): Promise<{ access_token: string, refresh_token: string }> {
 		const user = await this.userService.GetAUserById(userId)
 		if (!user || !user.refreshToken) {
@@ -85,5 +89,11 @@ export class AuthService {
 		const tokens = await this.GenerateTokens(userId)
 		this.UpdateUserRefreshToken(user.id, tokens.refresh_token)
 		return tokens
+	}
+
+	async GetCurrentUser(userId: string): Promise<{ user: User }> {
+		const user = await this.userService.GetAUserById(userId)
+		delete user.password
+		return { user }
 	}
 }

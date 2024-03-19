@@ -1,8 +1,10 @@
-import { Entity, BaseEntity, Column, Index } from "typeorm";
+import { Optional } from "@nestjs/common";
+import { Entity, BaseEntity, Column, Index, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity("User")
 export class User extends BaseEntity {
 	@Column({ unique: true, primary: true })
+	@PrimaryGeneratedColumn()
 	id: string;
 
 	@Index({ unique: true })
@@ -24,15 +26,15 @@ export class User extends BaseEntity {
 	@Column()
 	password: string
 
-	@Column()
-	isDeleted: string
+	@Column({ default: false })
+	isDeleted: boolean
 
-	@Column({ type: String })
+	@Column({ type: String, nullable: true })
 	refreshToken: string
 
-	@Column({ type: Date, default: Date.now() })
+	@Column({ type: Date, default: new Date() })
 	createdAt: Date
 
-	@Column({ type: Date })
+	@Column({ type: Date ,nullable: true})
 	lastLogin: Date
 }
