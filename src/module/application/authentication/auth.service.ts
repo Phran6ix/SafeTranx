@@ -1,12 +1,13 @@
 import * as argon2 from 'argon2'
 import * as bcrypt from 'bcrypt'
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { BadRequestException, ConflictException, HttpException, HttpStatus, Injectable, UnauthorizedException } from "@nestjs/common";
 import { UserService } from "../user/user.service";
 import { CreateUserDto } from "../user/dto/createUser.dto";
 import { LoginDTO } from "./dto/auth.dto";
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { User } from '../user/schema/user.schema';
+import { NotFoundError } from 'rxjs';
 
 @Injectable()
 export class AuthService {
@@ -81,9 +82,16 @@ export class AuthService {
 			throw new HttpException("An Error occured, please sign in again", 403)
 		}
 
+
+		try {
+			const verifyToken = await this.jwtService.verify(refreshToken, { secret: this.configService.get<string>("JWT_SECRET_REFRESH") })
+		} catch {
+			throw new UnauthorizedException()
+		}
+
 		const validToken = await argon2.verify(user.refreshToken, refreshToken)
 		if (!validToken) {
-			throw new HttpException("Invalid token", 403)
+			throw new HttpException("Session has expired, please sign in", 403)
 		}
 
 		const tokens = await this.GenerateTokens(userId)
@@ -96,4 +104,32 @@ export class AuthService {
 		delete user.password
 		return { user }
 	}
+
+	async ChangePassword(userId: string, oldPassword: string, newPassword: string): Promise<void> {
+		const user = await this.userService.GetAUserById(userId)
+		if (!user) {
+			throw new NotFoundError("User not found")
+		}
+		const validPassword = await bcrypt.compare(oldPassword, user.password)
+		if (!validPassword) {
+			throw new BadRequestException("Incorrect password")
+		}
+		if (oldPassword == newPassword) {
+			throw new ConflictException("Old password cannot be the same as new password")
+		}
+		let salt = await bcrypt.genSalt()
+		const hashedPassword = await bcrypt.hash(newPassword, salt)
+		this.userService.UpdateUser(userId, { password: hashedPassword })
+
+		return
+	}
+
+	// async VerifyAccount(email: string, otp:string) : Promise<void> {
+	// 	const user = await this.userService.GetAUserByEmail(email)
+	// 	if(!user) {
+	// 		throw new NotFoundError("User with this email not found")
+	// 	}
+	//
+	//
+	// }
 }

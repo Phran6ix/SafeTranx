@@ -9,10 +9,10 @@ export class AuthGuard implements CanActivate {
 		private configService: ConfigService
 	) { }
 
-	async canActivate(context: ExecutionContext):  Promise<boolean> {
+	async canActivate(context: ExecutionContext): Promise<boolean> {
 		const request = context.switchToHttp().getRequest()
 		const authorization = request.headers['authorization']
-		if(!authorization) {
+		if (!authorization) {
 			throw new UnauthorizedException("You are not signed in")
 		}
 		const [type, token] = authorization.split(" ")
@@ -20,8 +20,13 @@ export class AuthGuard implements CanActivate {
 			throw new UnauthorizedException("Invalid Token")
 		}
 
-		const jwtPayload = await this.jwtService.verify(token, { secret: this.configService.get<string>("JWT_SECRET") })
-		request.user = jwtPayload
+		try {
+			const jwtPayload = await this.jwtService.verify(token, { secret: this.configService.get<string>("JWT_SECRET") })
+			request.user = jwtPayload
+		} catch {
+			throw new UnauthorizedException()
+		}
+
 		return true
 	}
 }
