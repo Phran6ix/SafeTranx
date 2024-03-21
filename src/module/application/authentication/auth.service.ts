@@ -19,13 +19,10 @@ export class AuthService {
 
 	async UserSignUp(payload: CreateUserDto): Promise<unknown> {
 		const userExist = await this.userService.GetAUserByEmail(payload.email)
-		console.log("UserExist =-->", userExist)
 		if (userExist) {
 			throw new HttpException("User already exist", HttpStatus.CONFLICT)
 		}
 		const salt = await bcrypt.genSalt(10)
-		console.log("salt", salt)
-
 
 		let password = await bcrypt.hash(payload.password, salt)
 		this.userService.CreateUser({ ...payload, password })
@@ -47,8 +44,7 @@ export class AuthService {
 		const tokens = await this.GenerateTokens(user.id)
 
 		this.UpdateUserRefreshToken(user.id, tokens.refresh_token)
-		user.lastLogin = new Date()
-		user.save()
+		this.userService.UpdateUser(user.id, { lastLogin: new Date() })
 
 		return { user, tokens }
 	}

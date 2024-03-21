@@ -9,6 +9,7 @@ services:
       - '4001:4001'
     volumes:
       - ./src:/app/src
+      - ./:/app
       - /app/node_modules
     networks:
         - safe-tranx

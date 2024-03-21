@@ -1,10 +1,10 @@
 import { TypeOrmModuleOptions } from "@nestjs/typeorm";
-import { Product } from "src/module/application/product/product.schema";
-import { User } from "src/module/application/user/schema/user.schema";
+import { Product } from "../module/application/product/product.schema";
+import { User } from "../module/application/user/schema/user.schema";
 
 export const typeormConfig: TypeOrmModuleOptions = {
   type: "postgres",
-  host: 'postgres',
+  host: 'localhost',
   port: 5432,
   username: 'safe_tranx',
   password: 'password',

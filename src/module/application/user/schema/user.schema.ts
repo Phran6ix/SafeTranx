@@ -3,7 +3,7 @@ import { USER_ROLES } from "../enum/user.role";
 import { Product } from "../../product/product.schema";
 
 @Entity("User")
-export class User extends BaseEntity {
+export class User {
 	@Column({ unique: true, primary: true })
 	@PrimaryGeneratedColumn()
 	id: string;
