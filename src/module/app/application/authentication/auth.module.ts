@@ -9,27 +9,35 @@ import { UserModule } from "../user/user.module";
 import { User } from "../user/schema/user.schema";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { AuthController } from "./auth.controller";
+import { CacheModule } from "@nestjs/cache-manager";
+import { MailerService } from "../../mailer/smtpexpress.service";
 // import { UserRepository } from "../user/user.repository";
 
 @Module({
-	imports: [JwtModule.registerAsync({
-		imports: [ConfigModule],
-		useFactory: async (configService: ConfigService) => ({
-			secret: configService.get<string>("JWT_SECRET"),
-			signOptions: {
-				expiresIn: "1h"
-			}
+	imports: [
+		JwtModule.registerAsync({
+			imports: [ConfigModule],
+			useFactory: async (configService: ConfigService) => ({
+				secret: configService.get<string>("JWT_SECRET"),
+				signOptions: {
+					expiresIn: "1h"
+				}
+			}),
+			inject: [ConfigService],
+			global: true
 		}),
-		inject: [ConfigService],
-		global: true
-	}), TypeOrmModule.forFeature([User])
+		TypeOrmModule.forFeature([User]),
+		CacheModule.register({
+			ttl: 900
+		})
 	],
 	exports: [],
 	providers: [
 		AuthGuard,
 		AuthService,
 		UserService,
-		UserRepository
+		UserRepository,
+		MailerService
 	],
 	controllers: [AuthController]
 })

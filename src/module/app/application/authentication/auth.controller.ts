@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post, Req, UseGuards, UsePipes, ValidationPipe } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, Req, UseGuards, UsePipes, ValidationPipe } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { CreateUserDto } from "../user/dto/createUser.dto";
 import { LoginDTO } from "./dto/auth.dto";
@@ -10,11 +10,14 @@ import { ChangePasswordDTO } from "./dto/change-password.dto";
 export class AuthController {
 	constructor(private authService: AuthService) { }
 
-	@Post("/register")
 	@HttpCode(HttpStatus.CREATED)
+	@Post("/register")
 	async SignUp(@Body() body: CreateUserDto) {
 		const user = await this.authService.UserSignUp(body)
-		return "User has been created successfully"
+		return {
+			message: "User has been created successfully",
+			user
+		}
 	}
 
 	@HttpCode(HttpStatus.OK)
@@ -46,5 +49,17 @@ export class AuthController {
 	async ChangePassword(@AuthUser() user: string, @Body() body: ChangePasswordDTO) {
 		await this.authService.ChangePassword(user, body.oldPassword, body.newPassword)
 		return { message: "Passwords have been changed successfully" }
+	}
+
+	@Get("/verify-account/:token")
+	async VerifyAccount(@Param("token") token: string, @Query("email") email: string) {
+		await this.authService.VerifyAccount(email, token)
+		return { message: "Account has been verified successfully", data: null }
+	}
+
+	@Get("/resend-otp")
+	async ResendOTP(@Query("email") email:string) {
+		await this.authService.ResendOTP(email)
+		return {message: "OTP has been sent successfully"}
 	}
 }

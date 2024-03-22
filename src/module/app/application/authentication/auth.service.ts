@@ -1,21 +1,47 @@
 import * as argon2 from 'argon2'
 import * as bcrypt from 'bcrypt'
-import { BadRequestException, ConflictException, HttpException, HttpStatus, Injectable, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, ConflictException, HttpCode, HttpException, HttpStatus, Inject, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { UserService } from "../user/user.service";
 import { CreateUserDto } from "../user/dto/createUser.dto";
 import { LoginDTO } from "./dto/auth.dto";
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { User } from '../user/schema/user.schema';
-import { NotFoundError } from 'rxjs';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+import { MailerService } from '../../mailer/smtpexpress.service';
 
 @Injectable()
 export class AuthService {
 	constructor(
 		private configService: ConfigService,
 		private jwtService: JwtService,
-		private userService: UserService
+		private userService: UserService,
+		private mailerServicer: MailerService,
+		@Inject(CACHE_MANAGER) private cacheService: Cache
 	) { }
+
+	private async SendOTPToken(email: string): Promise<void> {
+		let otp = Math.floor(Math.random() * 90000) + 100000
+		console.log("otp", otp)
+
+		const hashedOTP = argon2.hash('' + otp)
+		await this.cacheService.set(`otp`, hashedOTP, 900000)
+
+		//SEND THE OTP
+		const mailPayload = {
+			subject: "One Time Password",
+			message: `Your one-time-password is ${otp}`,
+			sender: {
+				name: "Safe-Tranx",
+				email: "no-reply@email.com"
+			},
+			recipients: email,
+
+		}
+		this.mailerServicer.SendEmail(mailPayload)
+		return
+	}
 
 	async UserSignUp(payload: CreateUserDto): Promise<unknown> {
 		const userExist = await this.userService.GetAUserByEmail(payload.email)
@@ -25,7 +51,8 @@ export class AuthService {
 		const salt = await bcrypt.genSalt(10)
 
 		let password = await bcrypt.hash(payload.password, salt)
-		this.userService.CreateUser({ ...payload, password })
+		let user = await this.userService.CreateUser({ ...payload, password })
+		this.SendOTPToken(user.email)
 		return
 	}
 
@@ -34,9 +61,9 @@ export class AuthService {
 		if (!user) {
 			throw new HttpException("User with this email does not exist", 404)
 		}
-		// if (!user.isActive) {
-		// 	throw new HttpException("Your account is not verified", 403)
-		// }
+		if (!user.isActive) {
+			throw new HttpException("Your account is not verified", 403)
+		}
 		const checkPassword = await bcrypt.compare(payload.password, user.password)
 		if (!checkPassword) {
 			throw new HttpException("Incorrect password", 400)
@@ -80,7 +107,7 @@ export class AuthService {
 
 
 		try {
-			const verifyToken = await this.jwtService.verify(refreshToken, { secret: this.configService.get<string>("JWT_SECRET_REFRESH") })
+			await this.jwtService.verify(refreshToken, { secret: this.configService.get<string>("JWT_SECRET_REFRESH") })
 		} catch {
 			throw new UnauthorizedException()
 		}
@@ -104,7 +131,7 @@ export class AuthService {
 	async ChangePassword(userId: string, oldPassword: string, newPassword: string): Promise<void> {
 		const user = await this.userService.GetAUserById(userId)
 		if (!user) {
-			throw new NotFoundError("User not found")
+			throw new NotFoundException("User not found")
 		}
 		const validPassword = await bcrypt.compare(oldPassword, user.password)
 		if (!validPassword) {
@@ -120,12 +147,36 @@ export class AuthService {
 		return
 	}
 
-	// async VerifyAccount(email: string, otp:string) : Promise<void> {
-	// 	const user = await this.userService.GetAUserByEmail(email)
-	// 	if(!user) {
-	// 		throw new NotFoundError("User with this email not found")
-	// 	}
-	//
-	//
-	// }
+	async VerifyAccount(email: string, otp: string): Promise<void> {
+		console.log(otp)
+		console.log(email)
+		const user = await this.userService.GetAUserByEmail(email)
+		if (!user) {
+			throw new NotFoundException("User with this email not found")
+		}
+		const storedOTP: string | null = await this.cacheService.get(`otp`)
+		console.log(storedOTP)
+		if (!storedOTP) {
+			throw new HttpException("Invalid or expired token", HttpStatus.BAD_REQUEST)
+		}
+
+		//verify the OTP
+		const validOTP = argon2.verify(storedOTP, otp)
+		if (!validOTP) {
+			throw new HttpException("Ivalid OTP", HttpStatus.BAD_REQUEST)
+		}
+
+		this.userService.UpdateUser(user.id, { isActive: true })
+		return
+	}
+
+	async ResendOTP(email:string) :Promise<void> {
+		const user = await this.userService.GetAUserByEmail(email)
+		if(!user) {
+			throw new NotFoundException("User with this email does not exist")
+		}
+
+		await this.SendOTPToken(user.email)
+		return
+	}
 }

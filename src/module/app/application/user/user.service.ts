@@ -11,16 +11,15 @@ export class UserService {
 		private userRepo: Repository<User>
 	) { }
 
-	async CreateUser(user: CreateUserDto): Promise<void> {
-		await this.userRepo.save(user)
-		return
+	async CreateUser(user: CreateUserDto): Promise<User> {
+		return await this.userRepo.save(user)
+
 	}
 	async GetAllUsers(): Promise<User[]> {
 		return await this.userRepo.find()
 	}
 
 	async GetAUserByEmail(email: string): Promise<User | null> {
-		console.log("Method")
 		return await this.userRepo.findOneBy({ email })
 	}
 
