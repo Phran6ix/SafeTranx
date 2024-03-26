@@ -1,11 +1,12 @@
-import { BaseEntity, Column, Entity, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
+import { BaseEntity, Column, Entity, Generated, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "../user/schema/user.schema";
 
 @Entity("Product")
 export class Product extends BaseEntity {
-	@PrimaryGeneratedColumn()
+	@PrimaryGeneratedColumn("uuid")
 	@PrimaryColumn()
-	id: number
+	// @Generated("uuid")
+	id: string
 
 	@Column({ type: String, nullable: false })
 	name: string
