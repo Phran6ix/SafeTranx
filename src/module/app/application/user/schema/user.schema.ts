@@ -1,6 +1,6 @@
 import { OneToMany, Entity, BaseEntity, Column, Index, PrimaryGeneratedColumn, OneToOne } from "typeorm";
 import { USER_ROLES } from "../enum/user.role";
-import { Product } from "../../product/product.schema";
+import { Product } from "../../product/schema/product.schema";
 
 @Entity("User")
 export class User {

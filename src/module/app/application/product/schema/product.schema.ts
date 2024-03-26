@@ -1,5 +1,5 @@
 import { BaseEntity, Column, Entity, Generated, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
-import { User } from "../user/schema/user.schema";
+import { User } from "../../user/schema/user.schema";
 
 @Entity("Product")
 export class Product extends BaseEntity {
