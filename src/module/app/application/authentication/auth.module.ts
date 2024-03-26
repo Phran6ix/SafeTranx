@@ -11,6 +11,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { AuthController } from "./auth.controller";
 import { CacheModule } from "@nestjs/cache-manager";
 import { MailerService } from "../../mailer/smtpexpress.service";
+import { EventEmitter2, EventEmitterModule } from "@nestjs/event-emitter";
 // import { UserRepository } from "../user/user.repository";
 
 @Module({
@@ -29,7 +30,8 @@ import { MailerService } from "../../mailer/smtpexpress.service";
 		TypeOrmModule.forFeature([User]),
 		CacheModule.register({
 			ttl: 900
-		})
+		}),
+		EventEmitterModule.forRoot()
 	],
 	exports: [],
 	providers: [
@@ -37,7 +39,8 @@ import { MailerService } from "../../mailer/smtpexpress.service";
 		AuthService,
 		UserService,
 		UserRepository,
-		MailerService
+		MailerService,
+		EventEmitter2
 	],
 	controllers: [AuthController]
 })

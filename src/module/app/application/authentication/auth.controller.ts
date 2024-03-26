@@ -3,7 +3,7 @@ import { AuthService } from "./auth.service";
 import { CreateUserDto } from "../user/dto/createUser.dto";
 import { LoginDTO } from "./dto/auth.dto";
 import { AuthGuard } from "./auth.guard";
-import { AuthUser } from "src/decorators/auth-user";
+import { AuthUser } from "../../../../decorators/auth-user";
 import { ChangePasswordDTO } from "./dto/change-password.dto";
 
 @Controller("auth")

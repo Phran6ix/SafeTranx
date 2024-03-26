@@ -9,9 +9,11 @@ import { JwtModule } from "@nestjs/jwt";
 import { HttpException } from "@nestjs/common";
 import * as bcrypt from 'bcrypt'
 import { ChangePasswordDTO } from "./dto/change-password.dto";
-import { typeormConfig } from "src/configs/typeorm";
+import { typeormConfig } from "../../../../configs/typeorm";
 import { MailerService } from "../../mailer/smtpexpress.service";
+
 import { CacheModule } from "@nestjs/cache-manager";
+import { EventEmitterModule } from "@nestjs/event-emitter";
 
 describe("Authentication", () => {
 	let userMock = GenerateUser()
@@ -27,19 +29,22 @@ describe("Authentication", () => {
 
 	beforeAll(async () => {
 		const module = await Test.createTestingModule({
-			imports: [TypeOrmModule.forRoot(typeormConfig), TypeOrmModule.forFeature([User]),
+			imports: [
+				TypeOrmModule.forRoot(typeormConfig), TypeOrmModule.forFeature([User]),
 
-			JwtModule.registerAsync({
-				imports: [ConfigModule],
-				useFactory: async (configService: ConfigService) => ({
-					secret: configService.get<string>("JWT_SECRET"),
-					signOptions: {
-						expiresIn: "1h"
-					}
+				JwtModule.registerAsync({
+					imports: [ConfigModule],
+					useFactory: async (configService: ConfigService) => ({
+						secret: configService.get<string>("JWT_SECRET"),
+						signOptions: {
+							expiresIn: "1h"
+						}
+					}),
+					inject: [ConfigService],
+					global: true
 				}),
-				inject: [ConfigService],
-				global: true
-			})
+				EventEmitterModule.forRoot(),
+				CacheModule.register()
 			],
 			providers: [UserService, AuthService, ConfigService, MailerService, CacheModule]
 		}).compile()
@@ -67,7 +72,7 @@ describe("Authentication", () => {
 			jest.spyOn(userService, "CreateUser").mockResolvedValueOnce(null)
 
 			jest.spyOn(mailerService, "SendEmail").mockResolvedValueOnce(null)
-			jest.spyOn(cacheService, "set")
+			// jest.spyOn(cacheService, "match").
 
 			await authService.UserSignUp(userDTO)
 			expect(userService.GetAUserByEmail).toHaveBeenCalledTimes(1)
@@ -94,7 +99,6 @@ describe("Authentication", () => {
 
 		test("it should throw an error if the user is verified", async () => {
 			const unverifiedUser = GenerateUser({ isActive: false })
-			console.log("under", unverifiedUser)
 
 			jest.spyOn(userService, "GetAUserByEmail").mockResolvedValueOnce(unverifiedUser)
 
@@ -121,7 +125,7 @@ describe("Authentication", () => {
 		test("it should return access token and refresh token to show a successful sign in", async () => {
 			const verifiedUser = GenerateUser({ isActive: true })
 			jest.spyOn(userService, "GetAUserByEmail").mockResolvedValueOnce(verifiedUser)
-			jest.spyOn(userService, "UpdateUser").mockResolvedValueOnce({ raw: 1, generatedMaps: [] })
+			jest.spyOn(userService, "UpdateUser").mockResolvedValueOnce()
 
 			const bcryptCompare = jest.fn().mockResolvedValueOnce(true);
 			(bcrypt.compare as jest.Mock) = bcryptCompare
@@ -140,6 +144,7 @@ describe("Authentication", () => {
 
 	describe("User change password", () => {
 		const userChangePasswordDTO = { oldPassword: "old", newPassword: "new passwod" }
+
 		test("should throw an error if user with id does not exist", async () => {
 			jest.spyOn(userService, "GetAUserById").mockResolvedValueOnce(null)
 
@@ -174,6 +179,7 @@ describe("Authentication", () => {
 			(bcrypt.compare as jest.Mock) = jest.fn().mockResolvedValueOnce(true)
 
 			jest.spyOn(userService, "GetAUserById").mockResolvedValueOnce(userMock)
+			jest.spyOn(userService, "UpdateUser").mockResolvedValueOnce()
 
 			const service = await authService.ChangePassword("id", userChangePasswordDTO.oldPassword, userChangePasswordDTO.newPassword)
 

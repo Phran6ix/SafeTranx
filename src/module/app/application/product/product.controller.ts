@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { ProductService } from "./product.service";
 import { AuthGuard } from "../authentication/auth.guard";
-import { AuthUser } from "src/decorators/auth-user";
+import { AuthUser } from "../../../../decorators/auth-user";
 import { CreateProductDTO } from "./dto/create-product.dto";
 import { UpdateProductDTO } from "./dto/update-product.dto";
 
@@ -24,12 +24,19 @@ export class ProductController {
 
 	@HttpCode(HttpStatus.OK)
 	@UseGuards(AuthGuard)
-	@Get("/user/products")
-	async GetAUserProducts(@AuthUser() user_id: string, @Query("page") page: number) {
+	@Get("/user/my-products")
+	async GetMyProducts(@AuthUser() user_id: string, @Query("page") page: number) {
 		const products = await this.productService.GetAUserProducts(user_id, page)
 		return { message: "User products have been fetched successfully", data: products }
 	}
 
+	@HttpCode(HttpStatus.OK)
+	@UseGuards(AuthGuard)
+	@Get("/user/products/:user_id")
+	async GetAUserProducts(@Param("user_id") user_id: string, @Query("page") page: number) {
+		const products = await this.productService.GetAUserProducts(user_id, page)
+		return { message: "User products have been fetched successfully", data: products }
+	}
 	@UseGuards(AuthGuard)
 	@Patch("/user/update-products")
 	async UpdateAUserProducts(@AuthUser() user_id: string, @Query("productId") productId: string, @Body() body: UpdateProductDTO) {

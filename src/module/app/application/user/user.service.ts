@@ -28,7 +28,8 @@ export class UserService {
 
 	}
 
-	async UpdateUser(id: string, data: Partial<User>) {
-		return await this.userRepo.update({ id }, { ...data })
+	async UpdateUser(id: string, data: Partial<User>): Promise<void> {
+		await this.userRepo.update({ id }, { ...data })
+		return
 	}
 }

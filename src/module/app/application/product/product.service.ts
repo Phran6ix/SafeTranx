@@ -5,7 +5,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { CreateProductDTO } from "./dto/create-product.dto";
 import { UserService } from "../user/user.service";
 import { NotFoundError } from "rxjs";
-import { Paginate } from "src/common/utils/helper";
+import { Paginate } from "../../../../common/utils/helper";
 
 @Injectable()
 export class ProductService {
@@ -28,7 +28,7 @@ export class ProductService {
 		product.name = data.name;
 		product.description = data.description
 		product.price = data.price
-
+		console.log('produc', product)
 		await this.productRepo.save(product)
 		return { product }
 	}
@@ -39,6 +39,7 @@ export class ProductService {
 			throw new NotFoundException("User with ID not found")
 		}
 		let paginate = Paginate(page)
+		console.log(paginate)
 		const products = await this.productRepo.find({
 			relations: {
 				user: true

@@ -3,3 +3,7 @@ export enum WALLET_STATUS {
 	SUSPENDED = "SUSPENDED",
 	BLOCKED = "BLOCKED"
 }
+
+export enum CURRENCY {
+	NGN = "NGN"
+}

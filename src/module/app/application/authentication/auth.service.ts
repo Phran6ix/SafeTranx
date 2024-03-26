@@ -10,6 +10,7 @@ import { User } from '../user/schema/user.schema';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { MailerService } from '../../mailer/smtpexpress.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class AuthService {
@@ -18,12 +19,12 @@ export class AuthService {
 		private jwtService: JwtService,
 		private userService: UserService,
 		private mailerServicer: MailerService,
+		private eventEmitter: EventEmitter2,
 		@Inject(CACHE_MANAGER) private cacheService: Cache
 	) { }
 
 	private async SendOTPToken(email: string): Promise<void> {
 		let otp = Math.floor(Math.random() * 90000) + 100000
-		console.log("otp", otp)
 
 		const hashedOTP = argon2.hash('' + otp)
 		await this.cacheService.set(`otp`, hashedOTP, 900000)
@@ -52,7 +53,7 @@ export class AuthService {
 
 		let password = await bcrypt.hash(payload.password, salt)
 		let user = await this.userService.CreateUser({ ...payload, password })
-		this.SendOTPToken(user.email)
+		if (this.configService.get("NODE_ENV") != "test") this.SendOTPToken(user.email)
 		return
 	}
 
@@ -167,12 +168,13 @@ export class AuthService {
 		}
 
 		this.userService.UpdateUser(user.id, { isActive: true })
+		this.eventEmitter.emit("create.wallet", { userId: user.id })
 		return
 	}
 
-	async ResendOTP(email:string) :Promise<void> {
+	async ResendOTP(email: string): Promise<void> {
 		const user = await this.userService.GetAUserByEmail(email)
-		if(!user) {
+		if (!user) {
 			throw new NotFoundException("User with this email does not exist")
 		}
 
