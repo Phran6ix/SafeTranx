@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { ForbiddenException, HttpException, HttpStatus, Injectable, NotFoundException, ParseFilePipe } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Wallet } from "./schema/wallet.schema";
 import { Repository } from "typeorm";
@@ -38,6 +38,42 @@ export class WalletService {
 		newWallet.userId = userId
 
 		await this.walletRepository.save(newWallet)
-		return 
+		return
+	}
+
+	async DebitWalletBalance(data: { userId: string, amount: string, currency: string, description: string }): Promise<void> {
+		const wallet = await this.walletRepository.findOneBy({ userId: data.userId, currency: data.currency })
+		if (!wallet) {
+			throw new NotFoundException("Wallet not found")
+		}
+
+		if (wallet.status != WALLET_STATUS.ACTIVE) {
+			throw new ForbiddenException("Wallet is not active")
+		}
+
+		if (wallet.balance <= data.amount) {
+			throw new HttpException("Insufficient balance", HttpStatus.BAD_REQUEST)
+		}
+
+		let newBalance = parseFloat(wallet.balance) - parseFloat(data.amount)
+		await this.walletRepository.update({ walletId: wallet.walletId }, { balance: JSON.stringify(newBalance) })
+
+		//TODO : Create a entry in the ledger
+		return
+	}
+
+	async CreditWalletBalance(data: { userId: string, amount: string, currency: string, description: string }): Promise<void> {
+		const wallet = await this.walletRepository.findOneBy({ userId: data.userId, currency: data.currency })
+		if (!wallet) {
+			throw new NotFoundException("Wallet not found")
+		}
+		if (wallet.status != WALLET_STATUS.ACTIVE) {
+			throw new ForbiddenException("Wallet is not active")
+		}
+		const newBalance = parseFloat(wallet.balance) + parseFloat(data.amount)
+		await this.walletRepository.update({ walletId: wallet.walletId }, { balance: JSON.stringify(newBalance) })
+
+		//TODO : Create a new Entry in the ledger
+		return
 	}
 }

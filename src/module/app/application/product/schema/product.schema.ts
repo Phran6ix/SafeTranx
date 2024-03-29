@@ -5,7 +5,6 @@ import { User } from "../../user/schema/user.schema";
 export class Product extends BaseEntity {
 	@PrimaryGeneratedColumn("uuid")
 	@PrimaryColumn()
-	// @Generated("uuid")
 	id: string
 
 	@Column({ type: String, nullable: false })
