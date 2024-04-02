@@ -169,6 +169,7 @@ export class AuthService {
 
 		this.userService.UpdateUser(user.id, { isActive: true })
 		this.eventEmitter.emit("create.wallet", { userId: user.id })
+		this.eventEmitter.emit("create-cart", { userId: user.id })
 		return
 	}
 

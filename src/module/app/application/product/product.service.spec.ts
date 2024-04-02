@@ -25,8 +25,7 @@ describe("Product Spec", () => {
 
 	let productService: ProductService;
 
-	const user_repo_token = getRepositoryToken(Product)
-	console.log(user_repo_token)
+	const product_repo_token = getRepositoryToken(Product)
 	beforeEach(() => {
 		jest.clearAllMocks()
 	})
@@ -39,7 +38,7 @@ describe("Product Spec", () => {
 				UserRepository,
 				ConfigService,
 				{
-					provide: user_repo_token,
+					provide: product_repo_token,
 					useValue: {
 						findOneBy: jest.fn(),
 						save: jest.fn(),
@@ -70,7 +69,7 @@ describe("Product Spec", () => {
 
 		userService = module.get<UserService>(UserService)
 		productService = module.get<ProductService>(ProductService)
-		productRepo = module.get<Repository<Product>>(user_repo_token)
+		productRepo = module.get<Repository<Product>>(product_repo_token)
 	})
 
 

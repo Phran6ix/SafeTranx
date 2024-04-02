@@ -11,6 +11,5 @@ export class WalletEventListener {
 		console.log("Wallet Creation Event has been triggered")
 		console.log(event)
 		await this.walletService.CreateAWallet(event.userId)
-
 	}
 }

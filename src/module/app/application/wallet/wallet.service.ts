@@ -1,4 +1,5 @@
 import { ForbiddenException, HttpException, HttpStatus, Injectable, NotFoundException, ParseFilePipe } from "@nestjs/common";
+
 import { InjectRepository } from "@nestjs/typeorm";
 import { Wallet } from "./schema/wallet.schema";
 import { Repository } from "typeorm";
@@ -12,8 +13,10 @@ export class WalletService {
 	) { }
 
 	async GetUserWallet(userId: string): Promise<{ wallet: Wallet }> {
+		console.log("in here")
 		const wallet = await this.walletRepository.findOneBy({ userId })
 		if (!wallet) {
+			console.log("mpi")
 			throw new NotFoundException("cannot successfully fetch wallet, please reach out to support")
 		}
 
@@ -51,12 +54,14 @@ export class WalletService {
 			throw new ForbiddenException("Wallet is not active")
 		}
 
-		if (wallet.balance <= data.amount) {
+		if (+wallet.balance <= +data.amount) {
 			throw new HttpException("Insufficient balance", HttpStatus.BAD_REQUEST)
 		}
-
+		
 		let newBalance = parseFloat(wallet.balance) - parseFloat(data.amount)
-		await this.walletRepository.update({ walletId: wallet.walletId }, { balance: JSON.stringify(newBalance) })
+		await this.walletRepository.update({ walletId: wallet.walletId }, { balance: "" + newBalance })
+		// wallet.balance = '' + newBalance
+		// await this.walletRepository.save(wallet)
 
 		//TODO : Create a entry in the ledger
 		return
@@ -71,7 +76,7 @@ export class WalletService {
 			throw new ForbiddenException("Wallet is not active")
 		}
 		const newBalance = parseFloat(wallet.balance) + parseFloat(data.amount)
-		await this.walletRepository.update({ walletId: wallet.walletId }, { balance: JSON.stringify(newBalance) })
+		await this.walletRepository.update({ walletId: wallet.walletId }, { balance: ("" + newBalance) })
 
 		//TODO : Create a new Entry in the ledger
 		return

@@ -9,4 +9,4 @@ import { WalletController } from "./wallet.controller";
 	providers: [WalletService],
 	controllers: [WalletController]
 })
-export default class WallerModule { }
+export default class WalletModule { }
