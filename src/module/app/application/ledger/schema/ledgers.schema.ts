@@ -6,17 +6,17 @@ export class Ledger {
 	@PrimaryGeneratedColumn("uuid")
 	id: string
 
-	@Column({ type: String })
+	@Column({ type: String, nullable: true })
 	walletCredited: string
 
-	@Column({ type: String })
+	@Column({ type: String, nullable: true })
 	walletDebited: string
 
 	@Column({ type: String })
 	amount: string
 
 	@Column({ type: String })
-	currency: CURRENCY
+	currency: string
 
 	@Column({ type: Boolean, nullable: true })
 	payIn: boolean
