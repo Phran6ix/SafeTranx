@@ -1,7 +1,7 @@
 import { Controller, Delete, Get, Param, Patch, Query, UseGuards } from "@nestjs/common";
 import { CartService } from "./cart.service";
 import { AuthGuard } from "../authentication/auth.guard";
-import { AuthUser } from "src/decorators/auth-user";
+import { AuthUser } from "../../../../decorators/auth-user";
 
 @Controller("Cart")
 export class CartController {

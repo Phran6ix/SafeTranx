@@ -8,7 +8,6 @@ import { HttpException } from "@nestjs/common"
 import { GenerateUser } from "../authentication/utils/generate"
 import { Repository } from "typeorm"
 import { typeormConfig } from "../../../../configs/typeorm"
-import { UserRepository } from "../user/user.repository"
 import { User } from "../user/schema/user.schema"
 import { AuthModule } from "../authentication/auth.module"
 import { ConfigModule, ConfigService } from "@nestjs/config"
@@ -17,6 +16,7 @@ import { JwtModule } from "@nestjs/jwt"
 import { EventEmitterModule } from "@nestjs/event-emitter"
 import { CacheModule } from "@nestjs/cache-manager"
 import { faker } from "@faker-js/faker"
+import { GenerateProductData } from "./utils/generate"
 
 describe("Product Spec", () => {
 	// let productRepo
@@ -35,7 +35,6 @@ describe("Product Spec", () => {
 			providers: [
 				UserService,
 				ProductService,
-				UserRepository,
 				ConfigService,
 				{
 					provide: product_repo_token,
@@ -101,7 +100,7 @@ describe("Product Spec", () => {
 		let user = GenerateUser()
 		let products = []
 		for (let i = 0; i < 10; i++) {
-			products.push({ name: faker.commerce.productName(), description: faker.commerce.productDescription(), price: faker.commerce.price(), user })
+			products.push(GenerateProductData())
 		}
 
 		test("it should throw a 404 error if user with id does not exist", async () => {
@@ -139,8 +138,7 @@ describe("Product Spec", () => {
 
 	describe("Get A Product", () => {
 		let user = GenerateUser()
-		const product = { name: faker.commerce.productName(), description: faker.commerce.productDescription(), price: faker.commerce.price(), user }
-
+		const product = GenerateProductData()
 		test("it should throw a error if the product does not exist", async () => {
 			jest.spyOn(productRepo, "findOneBy").mockResolvedValueOnce(null)
 

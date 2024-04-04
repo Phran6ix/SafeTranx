@@ -4,11 +4,11 @@ import { Product } from "./schema/product.schema";
 import { ProductService } from "./product.service";
 import { ProductController } from "./product.controller";
 import { UserService } from "../user/user.service";
-import { UserRepository } from "../user/user.repository";
+import { User } from "../user/schema/user.schema";
 
 @Module({
-	providers: [UserService, ProductService, UserRepository],
-	imports: [TypeOrmModule.forFeature([Product])],
+	providers: [UserService, ProductService ],
+	imports: [TypeOrmModule.forFeature([Product, User])],
 	controllers: [ProductController],
 	exports: []
 })

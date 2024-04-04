@@ -34,6 +34,14 @@ export class CartService {
 		if (!user) {
 			throw new NotFoundException("user mot found")
 		}
+		const cartExist = await this.cartRepository.findOne({
+			where: {
+				user
+			}
+		})
+		if (cartExist) {
+			return
+		}
 
 		const newCart = new Cart()
 		newCart.user = user
