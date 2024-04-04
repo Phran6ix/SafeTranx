@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { PaymentEvent } from "./paymemtEvent.schema";
 import { CURRENCY } from "../../wallet/schema/wallet.enums";
 
@@ -7,22 +7,22 @@ export class PaymentOrder {
 	@PrimaryGeneratedColumn("uuid")
 	order_id: string
 
-	@Column({type: String})
+	@Column({ type: String })
 	product_id: string
 
-	@Column({type: String})
+	@Column({ type: String })
 	amount: string
 
-	@Column({type: String})
-	currency: CURRENCY
+	@Column({ type: String, enum: CURRENCY })
+	currency: string
 
-	@Column({type: Boolean, default: false})
+	@Column({ type: Boolean, default: false })
 	walletUpdated: boolean
 
-	@Column({type: Boolean, default: false})
+	@Column({ type: Boolean, default: false })
 	ledgerUpdated: boolean
 
-	@Column({type:Date, default: new Date()})
+	@Column({ type: Date, default: new Date() })
 	dateInitiated: Date
 
 	@ManyToOne(() => PaymentEvent, (event) => event.paymentOrders)

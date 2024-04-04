@@ -1,6 +1,7 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { PaymentOrder } from "./paymentOrder.schema";
 import { WALLET_STATUS } from "../../wallet/schema/wallet.enums";
+import { Checkout } from "../../checkout/checkout.schema";
 
 @Entity("PaymentEvent")
 export class PaymentEvent {
@@ -15,6 +16,10 @@ export class PaymentEvent {
 
 	@Column()
 	paymentStatus: WALLET_STATUS
+
+	@OneToOne(() => Checkout)
+	@JoinColumn()
+	checkout: Checkout
 
 	@OneToMany(() => PaymentOrder, (order) => order.paymentEvent)
 	paymentOrders: PaymentOrder[]

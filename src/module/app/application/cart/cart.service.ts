@@ -3,9 +3,7 @@ import { Repository } from "typeorm";
 import { Cart } from "./schema/cart.schema";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserService } from "../user/user.service";
-import { OnEvent } from "@nestjs/event-emitter";
 import { Product } from "../product/schema/product.schema";
-import { ro } from "@faker-js/faker";
 import { ProductService } from "../product/product.service";
 
 @Injectable()
@@ -17,6 +15,15 @@ export class CartService {
 		private readonly productService: ProductService
 	) { }
 
+	async GetCartById(cartId: string): Promise<{ cart: Cart }> {
+		const cart = await this.cartRepository.findOne({
+			where: {
+				cartId
+			}
+		})
+
+		return { cart }
+	}
 	async GetuserCart(userId: string): Promise<{ cart: Cart }> {
 		const cart = await this.cartRepository.findOne({
 			where: {
